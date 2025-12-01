@@ -28,6 +28,12 @@ export default function FormDatePicker({ control, name, label, rules }: Props) {
               onFocus={() => setOpen(true)}
               showSoftInputOnFocus={false}
               error={!!error}
+              right={
+                <TextInput.Icon
+                  icon="calendar" // ← This shows the calendar icon
+                  onPress={() => setOpen(true)}
+                />
+              }
             />
 
             <DatePickerModal
@@ -39,6 +45,12 @@ export default function FormDatePicker({ control, name, label, rules }: Props) {
               onConfirm={({ date }) => {
                 setOpen(false);
                 onChange(date?.toISOString());
+              }}
+              onChange={({ date }) => {
+                if (date) {
+                  onChange(date.toISOString());
+                  setOpen(false); // close immediately
+                }
               }}
             />
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { View } from "react-native";
 import { Controller } from "react-hook-form";
-import { Text, TextInput } from "react-native-paper";
+import { View } from "react-native";
+import { Text } from "react-native-paper";
 import DropDown from "react-native-paper-dropdown";
 
 type Props = {
@@ -12,7 +12,13 @@ type Props = {
   rules?: any;
 };
 
-export default function FormDropdown({ control, name, label, items, rules }: Props) {
+export default function FormDropdown({
+  control,
+  name,
+  label,
+  items,
+  rules,
+}: Props) {
   const [show, setShow] = useState(false);
 
   return (
@@ -37,7 +43,9 @@ export default function FormDropdown({ control, name, label, items, rules }: Pro
               }}
             />
 
-            {error && <Text className="text-red-500 mt-1">{error.message}</Text>}
+            {error && (
+              <Text className="text-red-500 mt-1">{error.message}</Text>
+            )}
           </>
         )}
       />
