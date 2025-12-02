@@ -11,6 +11,14 @@ type Props = {
   rules?: any;
 };
 
+// Format date as DD/MM/YYYY
+const formatDate = (date: Date) => {
+  const d = date.getDate().toString().padStart(2, "0");
+  const m = (date.getMonth() + 1).toString().padStart(2, "0");
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
+};
+
 export default function FormDatePicker({ control, name, label, rules }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -24,15 +32,12 @@ export default function FormDatePicker({ control, name, label, rules }: Props) {
           <>
             <TextInput
               label={label}
-              value={value ? new Date(value).toDateString() : ""}
+              value={value ? formatDate(value) : ""} // ✔ format date safely
               onFocus={() => setOpen(true)}
               showSoftInputOnFocus={false}
               error={!!error}
               right={
-                <TextInput.Icon
-                  icon="calendar" // ← This shows the calendar icon
-                  onPress={() => setOpen(true)}
-                />
+                <TextInput.Icon icon="calendar" onPress={() => setOpen(true)} />
               }
             />
 
@@ -41,15 +46,15 @@ export default function FormDatePicker({ control, name, label, rules }: Props) {
               mode="single"
               visible={open}
               onDismiss={() => setOpen(false)}
-              date={value ? new Date(value) : undefined}
+              date={value || new Date()} // ✔ pass Date object
               onConfirm={({ date }) => {
                 setOpen(false);
-                onChange(date?.toISOString());
+                onChange(date); // ✔ store Date object
               }}
               onChange={({ date }) => {
                 if (date) {
-                  onChange(date.toISOString());
-                  setOpen(false); // close immediately
+                  onChange(date);
+                  setOpen(false); // auto-close on selection
                 }
               }}
             />

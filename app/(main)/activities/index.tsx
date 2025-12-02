@@ -1,13 +1,15 @@
 import api from "@/lib/api";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
   Text,
+  TextInput,
   View,
 } from "react-native";
+import { Appbar, Avatar, Icon } from "react-native-paper";
 
 interface Activity {
   id: number;
@@ -23,16 +25,38 @@ interface ApiResponse {
 
 export default function Activities() {
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const getInitials = (name: string = "") => {
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0][0]?.toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  };
 
   useEffect(() => {
     fetchActivities();
   }, []);
 
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredActivities(activities);
+    } else {
+      const filtered = activities.filter((activity) =>
+        activity.user?.fullName
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      );
+      setFilteredActivities(filtered);
+    }
+  }, [searchQuery, activities]);
+
   const fetchActivities = async () => {
     try {
       const response = await api.get<ApiResponse>("/comments");
       setActivities(response.data.comments);
+      setFilteredActivities(response.data.comments);
     } catch (error) {
       console.error("Error fetching customers:", error);
     } finally {
@@ -50,27 +74,49 @@ export default function Activities() {
 
   return (
     <View className="flex-1 bg-white">
-      <View className="p-5 border-b border-gray-200">
-        <Text className="text-2xl font-bold text-gray-800">Activities</Text>
-        <Text className="text-sm text-gray-500 mt-1">
-          Total: {activities.length}
-        </Text>
+      <View className=" border-b border-gray-200">
+        <View className="text-2xl font-bold text-gray-800">
+          <Appbar.Header>
+            <Appbar.BackAction onPress={() => router.back()} />
+            <Appbar.Content title="My Activities" />
+          </Appbar.Header>
+        </View>
       </View>
+      <View className="flex-row items-center px-5 py-4 gap-3">
+        {/* LEFT — Search Box (3/4 width) */}
+        <View className="flex-[3] bg-gray-100 border border-gray-300 rounded-lg flex-row items-center px-3">
+          <TextInput
+            className="flex-1 text-gray-800 py-3"
+            placeholder="Search for customer ..."
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <Icon source="magnify" size={22} color="#6B7280" />
+        </View>
 
-      <Link href="/(main)/activities/create" asChild>
-        <Pressable className="m-5 bg-[#A5D8DD] px-4 py-2 rounded-lg items-center">
-          <Text className="text-[#7B68A6] font-medium">+ Create Activity</Text>
-        </Pressable>
-      </Link>
-
+        {/* RIGHT — Create Button (1/4 width) */}
+        <Link href="/(main)/activities/create" asChild>
+          <Pressable className="flex-[1] bg-[#A5D8DD] py-3 rounded-lg items-center justify-center">
+            <Text className="text-[#7B68A6] font-medium">+ Create</Text>
+          </Pressable>
+        </Link>
+      </View>
       <FlatList
-        data={activities}
+        data={filteredActivities}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ padding: 20 }}
         renderItem={({ item }) => (
-          <Link href={`/(main)/activities/#` as any} asChild>
+          <Link href={`/(main)/activities/${item.id}` as any} asChild>
             <Pressable className="bg-gray-50 p-4 rounded-lg mb-3 border border-gray-200 active:bg-gray-100">
-              <View className="flex-row justify-between items-start">
+              <View className="flex-row items-start gap-4">
+                <Avatar.Text
+                  size={60}
+                  className="text-lg"
+                  label={getInitials(item.user.fullName)}
+                  style={{ backgroundColor: "#7B68A6" }}
+                />
+
                 <View className="flex-1">
                   <Text className="text-lg font-semibold text-gray-800">
                     {item.body}

@@ -9,16 +9,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
 import { useForm } from "react-hook-form";
 import { ScrollView, Text, View } from "react-native";
+import { Appbar } from "react-native-paper";
 import { z } from "zod";
 
 // Zod Schema
 const ActivitySchema = z
   .object({
-    customerCode: z.string().min(1, "Customer code is required"),
+    //customerCode: z.string().min(1, "Customer code is required"),
     //activityType: z.string().min(1, "Activity type is required"),
     subject: z.string().min(1, "Subject is required"),
-    startDate: z.string().min(1, "Start date is required"),
-    endDate: z.string().min(1, "End date is required"),
+    startDate: z.date({ required_error: "Start date is required" }),
+    endDate: z.date({ required_error: "End date is required" }),
     //priority: z.string().min(1, "Priority is required"),
     activityDescription: z
       .string()
@@ -50,8 +51,8 @@ export default function ActivityCreate() {
       //  customerCode: "",
       //  activityType: "",
       subject: "",
-      startDate: "",
-      endDate: "",
+      startDate: new Date(),
+      endDate: new Date(),
       //  priority: "",
       activityDescription: "",
     },
@@ -61,7 +62,7 @@ export default function ActivityCreate() {
     try {
       console.log("Submitting values:", values);
       const response = await api.post("/users/add", {
-        customerCode: values.customerCode,
+        //customerCode: values.customerCode,
         //activityType: values.activityType,
         subject: values.subject,
         startDate: values.startDate,
@@ -87,12 +88,19 @@ export default function ActivityCreate() {
       FormTextarea,
     }),
     (
-      <ScrollView className="flex-1 bg-white">
-        <View className="p-5">
-          <Text className="text-2xl font-bold text-gray-800 mb-6">
-            Create Activity
-          </Text>
-          {/*  <FormDropdown
+      <View className="flex-1 bg-white">
+        <View className=" border-b border-gray-200">
+          <View className="text-2xl font-bold text-gray-800">
+            <Appbar.Header>
+              <Appbar.BackAction onPress={() => router.back()} />
+              <Appbar.Content title="Create Activity" />
+            </Appbar.Header>
+          </View>
+        </View>
+
+        <ScrollView className="flex-1 bg-white">
+          <View className="p-5">
+            {/*  <FormDropdown
             control={control}
             name="customerCode"
             label="Customer Code"
@@ -118,21 +126,21 @@ export default function ActivityCreate() {
             ]}
           />
  */}
-          <FormInput
-            control={control}
-            name="subject"
-            label="Subject"
-            rules={{ required: "Subject is required" }}
-          />
+            <FormInput
+              control={control}
+              name="subject"
+              label="Subject"
+              rules={{ required: "Subject is required" }}
+            />
 
-          <FormDatePicker
-            control={control}
-            name="startDate"
-            label="Start Date"
-          />
-          <FormDatePicker control={control} name="endDate" label="End Date" />
+            <FormDatePicker
+              control={control}
+              name="startDate"
+              label="Start Date"
+            />
+            <FormDatePicker control={control} name="endDate" label="End Date" />
 
-          {/*           <FormDropdown
+            {/*           <FormDropdown
             control={control}
             name="priority"
             label="Priority"
@@ -143,39 +151,40 @@ export default function ActivityCreate() {
             ]}
           />
  */}
-          <FormTextarea
-            control={control}
-            name="activityDescription"
-            label="Activity Description"
-          />
+            <FormTextarea
+              control={control}
+              name="activityDescription"
+              label="Activity Description"
+            />
 
-          {/* Error Message */}
-          {errors.root && (
-            <Text className="text-red-500 text-sm mb-4 text-center">
-              {errors.root.message}
-            </Text>
-          )}
-          {/* Submit Buttons */}
-          <View className="gap-3 mt-4 mb-6">
-            <FormButton
-              variant="primary"
-              onPress={handleSubmit(onSubmit)}
-              loading={isSubmitting}
-              disabled={isSubmitting}
-            >
-              Create Activity
-            </FormButton>
+            {/* Error Message */}
+            {errors.root && (
+              <Text className="text-red-500 text-sm mb-4 text-center">
+                {errors.root.message}
+              </Text>
+            )}
+            {/* Submit Buttons */}
+            <View className="gap-3 mt-4 mb-6">
+              <FormButton
+                variant="primary"
+                onPress={handleSubmit(onSubmit)}
+                loading={isSubmitting}
+                disabled={isSubmitting}
+              >
+                Create Activity
+              </FormButton>
 
-            <FormButton
-              variant="outline"
-              onPress={() => router.back()}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </FormButton>
+              <FormButton
+                variant="outline"
+                onPress={() => router.back()}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </FormButton>
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     )
   );
 }
