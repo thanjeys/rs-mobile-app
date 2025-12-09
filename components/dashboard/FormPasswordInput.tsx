@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { View } from "react-native";
 import { Controller } from "react-hook-form";
-import { TextInput, Text, IconButton } from "react-native-paper";
+import { Text, View } from "react-native";
+import { TextInput } from "react-native-paper";
 
 type Props = {
   control: any;
@@ -10,8 +10,16 @@ type Props = {
   rules?: any;
 };
 
-export default function FormPasswordInput({ control, name, label, rules }: Props) {
+export default function FormPasswordInput({
+  control,
+  name,
+  label,
+  rules,
+}: Props) {
   const [show, setShow] = useState(false);
+
+  // Check if required
+  const isRequired = !!rules?.required;
 
   return (
     <View className="mb-4">
@@ -19,10 +27,14 @@ export default function FormPasswordInput({ control, name, label, rules }: Props
         control={control}
         name={name}
         rules={rules}
-        render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
+        render={({
+          field: { value, onChange, onBlur },
+          fieldState: { error },
+        }) => (
           <>
             <TextInput
-              label={label}
+              mode="outlined"
+              label={isRequired ? `${label} *` : label} // <-- add * only if required
               value={value}
               onBlur={onBlur}
               onChangeText={onChange}
@@ -35,7 +47,9 @@ export default function FormPasswordInput({ control, name, label, rules }: Props
                 />
               }
             />
-            {error && <Text className="text-red-500 mt-1">{error.message}</Text>}
+            {error && (
+              <Text className="text-red-500 mt-1">{error.message}</Text>
+            )}
           </>
         )}
       />

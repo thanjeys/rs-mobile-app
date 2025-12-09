@@ -1,4 +1,5 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
+import ContactIcons from "@/components/dashboard/ContactIcons";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -7,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { Avatar } from "react-native-paper";
 import api from "../../../lib/api";
 
 interface Customer {
@@ -27,6 +29,12 @@ export default function CustomerDetail() {
   const router = useRouter();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const getInitials = (name: string = "") => {
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0][0]?.toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  };
 
   useEffect(() => {
     fetchCustomer();
@@ -70,11 +78,40 @@ export default function CustomerDetail() {
       <View className="p-5">
         {/* Header */}
         <View className="mb-6">
-          <Text className="text-2xl font-bold text-gray-800">
-            {customer.firstName} {customer.lastName}
+          <View className="flex-row items-start gap-4">
+            <Avatar.Text
+              size={60}
+              className="text-lg"
+              label={getInitials(`${customer.firstName} ${customer.lastName}`)}
+              style={{ backgroundColor: "#7B68A6" }}
+            />
+            <View>
+              <Text className="text-2xl font-bold text-gray-800">
+                {customer.firstName} {customer.lastName}
+              </Text>
+              <Text className="text-sm text-gray-500 mt-1">
+                Customer ID: {customer.id}
+              </Text>
+              <ContactIcons
+                email="test@example.com"
+                sms="+1234567890"
+                phone="+1234567890"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Address */}
+        <View className="bg-gray-50 rounded-lg p-4 mb-4">
+          <Text className="text-lg font-semibold text-gray-800 mb-3">
+            Address
           </Text>
-          <Text className="text-sm text-gray-500 mt-1">
-            Customer ID: {customer.id}
+
+          <Text className="text-base text-gray-800">
+            {customer.address.address}
+          </Text>
+          <Text className="text-base text-gray-800 mt-1">
+            {customer.address.city}, {customer.address.state}
           </Text>
         </View>
 
@@ -95,27 +132,31 @@ export default function CustomerDetail() {
           </View>
         </View>
 
-        {/* Address */}
         <View className="bg-gray-50 rounded-lg p-4 mb-4">
           <Text className="text-lg font-semibold text-gray-800 mb-3">
-            Address
+            Contact Information
           </Text>
 
-          <Text className="text-base text-gray-800">
-            {customer.address.address}
-          </Text>
-          <Text className="text-base text-gray-800 mt-1">
-            {customer.address.city}, {customer.address.state}
-          </Text>
+          <View className="mb-3">
+            <Text className="text-xs text-gray-500 mb-1">Email</Text>
+            <Text className="text-base text-gray-800">{customer.email}</Text>
+          </View>
+
+          <View>
+            <Text className="text-xs text-gray-500 mb-1">Phone</Text>
+            <Text className="text-base text-gray-800">{customer.phone}</Text>
+          </View>
         </View>
 
         {/* Actions */}
         <View className="gap-3 mt-6">
-          <Pressable className="bg-[#7B68A6] p-4 rounded-lg">
-            <Text className="text-white text-center font-medium text-base">
-              Edit Customer
-            </Text>
-          </Pressable>
+          <Link href={`/(main)/customers/edit?id=${customer.id}`} asChild>
+            <Pressable className="bg-[#7B68A6] p-4 rounded-lg">
+              <Text className="text-white text-center font-medium text-base">
+                Edit Customer
+              </Text>
+            </Pressable>
+          </Link>
 
           <Pressable
             className="bg-gray-200 p-4 rounded-lg"

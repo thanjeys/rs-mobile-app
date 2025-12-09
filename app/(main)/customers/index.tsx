@@ -1,12 +1,15 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
   Text,
+  TextInput,
   View,
 } from "react-native";
+import { Appbar, Avatar, Icon } from "react-native-paper";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import api from "../../../lib/api";
 
 interface Customer {
@@ -26,15 +29,29 @@ interface ApiResponse {
 export default function Customers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchCustomers();
   }, []);
 
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredCustomers(customers);
+    } else {
+      const filtered = customers.filter((customer) =>
+        customer.firstName?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredCustomers(filtered);
+    }
+  }, [searchQuery, customers]);
+
   const fetchCustomers = async () => {
     try {
       const response = await api.get<ApiResponse>("/users");
       setCustomers(response.data.users);
+      setFilteredCustomers(response.data.users);
     } catch (error) {
       console.error("Error fetching customers:", error);
     } finally {
@@ -50,29 +67,57 @@ export default function Customers() {
     );
   }
 
+  const getInitials = (name: string = "") => {
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0][0]?.toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  };
+
   return (
     <View className="flex-1 bg-white">
-      <View className="p-5 border-b border-gray-200">
-        <Text className="text-2xl font-bold text-gray-800">Customers</Text>
-        <Text className="text-sm text-gray-500 mt-1">
-          Total: {customers.length}
-        </Text>
+      <View className=" border-b border-gray-200">
+        <View className="text-2xl font-bold text-gray-800">
+          <Appbar.Header>
+            <Appbar.BackAction onPress={() => router.back()} />
+            <Appbar.Content title="My Customers" />
+          </Appbar.Header>
+        </View>
+      </View>
+      <View className="flex-row items-center px-5 py-4 gap-3">
+        {/* LEFT — Search Box (3/4 width) */}
+        <View className="flex-[3] bg-gray-100 border border-gray-300 rounded-lg flex-row items-center px-3">
+          <TextInput
+            className="flex-1 text-gray-800 py-3"
+            placeholder="Search for customer ..."
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <Icon source="magnify" size={22} color="#6B7280" />
+        </View>
+
+        {/* RIGHT — Create Button (1/4 width) */}
+        <Link href="/(main)/customers/create" asChild>
+          <Pressable className="flex-[1] bg-[#A5D8DD] py-3 rounded-lg items-center justify-center">
+            <Text className="text-[#7B68A6] font-medium">+ Create</Text>
+          </Pressable>
+        </Link>
       </View>
 
-      <Link href="/(main)/customers/create" asChild>
-        <Pressable className="m-5 bg-[#A5D8DD] px-4 py-2 rounded-lg items-center">
-          <Text className="text-[#7B68A6] font-medium">+ Add Customer</Text>
-        </Pressable>
-      </Link>
-
       <FlatList
-        data={customers}
+        data={filteredCustomers}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ padding: 20 }}
         renderItem={({ item }) => (
           <Link href={`/(main)/customers/${item.id}` as any} asChild>
             <Pressable className="bg-gray-50 p-4 rounded-lg mb-3 border border-gray-200 active:bg-gray-100">
-              <View className="flex-row justify-between items-start">
+              <View className="flex-row items-start gap-4">
+                <Avatar.Text
+                  size={60}
+                  className="text-lg"
+                  label={getInitials(item.firstName + " " + item.lastName)}
+                  style={{ backgroundColor: "#7B68A6" }}
+                />
                 <View className="flex-1">
                   <Text className="text-lg font-semibold text-gray-800">
                     {item.firstName} {item.lastName}
@@ -80,14 +125,15 @@ export default function Customers() {
                   <Text className="text-sm text-gray-600 mt-1">
                     {item.email}
                   </Text>
-                  <Text className="text-sm text-gray-500 mt-0.5">
-                    {item.phone}
-                  </Text>
                 </View>
-                <View className="bg-[#A5D8DD] px-3 py-1 rounded-full">
-                  <Text className="text-xs font-medium text-[#7B68A6]">
-                    Age: {item.age}
-                  </Text>
+                <View className=" px-3 mt-4 py-1 rounded-full">
+                  <View className="flex-row items-center">
+                    <MaterialIcons
+                      name="arrow-forward"
+                      size={20}
+                      color="black"
+                    />
+                  </View>
                 </View>
               </View>
             </Pressable>
