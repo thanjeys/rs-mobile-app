@@ -16,6 +16,14 @@ interface Activity {
   activityType: string;
   customerCode: string;
   subject: string;
+
+  //remove this after getting api with proper fields
+  user: {
+    fullName: string;
+  };
+  body: string;
+  postId: number;
+  likes: number;
 }
 
 interface ApiResponse {

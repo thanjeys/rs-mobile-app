@@ -1,37 +1,59 @@
-import FormDropdown from "@/components/dashboard/FormDropdown";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { Appbar } from "react-native-paper";
 import { z } from "zod";
-import FormButton from "../../../components/dashboard/FormButton";
-import FormInput from "../../../components/dashboard/FormInput";
-import { useToast } from "../../../components/Toast";
-import api from "../../../lib/api";
 
-// Zod Schema
+import FormButton from "@/components/dashboard/FormButton";
+import FormDropdown from "@/components/dashboard/FormDropdown";
+import FormInput from "@/components/dashboard/FormInput";
+import { useToast } from "@/components/Toast";
+import api from "@/lib/api";
+
+// Zod Schema (same as create)
 const CustomerSchema = z.object({
+  series: z.string().optional(),
   customerName: z.string().min(1, "Customer Name is required"),
+  customerGroup: z.string().optional(),
+  currency: z.string().optional(),
+  customerPhone: z.string().optional(),
+  customerMobile: z.string().optional(),
+  panNumber: z.string().optional(),
+  creditLimit: z.string().optional(),
+  address: z.string().optional(),
+  area: z.string().optional(),
   city: z.string().min(1, "City is required"),
+  pinCode: z.string().optional(),
   state: z.string().min(1, "State is required"),
+  gstn: z.string().optional(),
+  contactPersonName: z.string().optional(),
+  designation: z.string().optional(),
+  contactPersonEmail: z.string().optional(),
+  contactPersonMobile: z.string().optional(),
+  contactPersonPhone: z.string().optional(),
 });
 
 type CustomerFormData = z.infer<typeof CustomerSchema>;
 
-export default function CustomerCreate() {
+export default function CustomerEdit() {
+  const { id } = useLocalSearchParams();
   const router = useRouter();
   const { showToast } = useToast();
+  const [loading, setLoading] = useState(true);
 
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
     setError,
   } = useForm<CustomerFormData>({
     resolver: zodResolver(CustomerSchema),
     mode: "onTouched",
     defaultValues: {
+      series: "",
       customerName: "",
       customerGroup: "",
       currency: "",
@@ -42,7 +64,7 @@ export default function CustomerCreate() {
       address: "",
       area: "",
       city: "",
-      pincode: "",
+      pinCode: "",
       state: "",
       gstn: "",
       contactPersonName: "",
@@ -53,9 +75,67 @@ export default function CustomerCreate() {
     },
   });
 
+  // Fetch customer details
+  const fetchCustomer = async () => {
+    try {
+      const res = await api.get(`/users/${id}`);
+      const data = res.data;
+
+      reset({
+        series: typeof data.series === "string" ? data.series : "",
+        customerName:
+          typeof data.customerName === "string" ? data.customerName : "",
+        customerGroup:
+          typeof data.customerGroup === "string" ? data.customerGroup : "",
+        currency: typeof data.currency === "string" ? data.currency : "",
+        customerPhone:
+          typeof data.customerPhone === "string" ? data.customerPhone : "",
+        customerMobile:
+          typeof data.customerMobile === "string" ? data.customerMobile : "",
+        panNumber: typeof data.panNumber === "string" ? data.panNumber : "",
+        creditLimit:
+          typeof data.creditLimit === "string" ? data.creditLimit : "",
+        address: typeof data.address === "string" ? data.address : "",
+        area: typeof data.area === "string" ? data.area : "",
+        city: typeof data.city === "string" ? data.city : "",
+        pinCode: typeof data.pinCode === "string" ? data.pinCode : "",
+        state: typeof data.state === "string" ? data.state : "",
+        gstn: typeof data.gstn === "string" ? data.gstn : "",
+        contactPersonName:
+          typeof data.contactPersonName === "string"
+            ? data.contactPersonName
+            : "",
+        designation:
+          typeof data.designation === "string" ? data.designation : "",
+        contactPersonEmail:
+          typeof data.contactPersonEmail === "string"
+            ? data.contactPersonEmail
+            : "",
+        contactPersonMobile:
+          typeof data.contactPersonMobile === "string"
+            ? data.contactPersonMobile
+            : "",
+        contactPersonPhone:
+          typeof data.contactPersonPhone === "string"
+            ? data.contactPersonPhone
+            : "",
+      });
+
+      setLoading(false);
+    } catch (error) {
+      showToast("Failed to load customer details", "error");
+      router.back();
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomer();
+  }, []);
+
   const onSubmit = async (values: CustomerFormData) => {
     try {
-      const response = await api.post("/users/add", {
+      await api.put(`/users/update/${id}`, {
+        series: values.series,
         customerName: values.customerName,
         customerGroup: values.customerGroup,
         currency: values.currency,
@@ -66,7 +146,7 @@ export default function CustomerCreate() {
         address: values.address,
         area: values.area,
         city: values.city,
-        pincode: values.pincode,
+        pinCode: values.pinCode,
         state: values.state,
         gstn: values.gstn,
         contactPersonName: values.contactPersonName,
@@ -76,33 +156,37 @@ export default function CustomerCreate() {
         contactPersonPhone: values.contactPersonPhone,
       });
 
-      showToast("Customer created successfully!", "success");
+      showToast("Customer updated successfully", "success");
       router.back();
     } catch (error: any) {
       setError("root", {
-        message: error.response?.data?.message || "Failed to create customer",
+        message: error.response?.data?.message || "Failed to update customer",
       });
     }
   };
 
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" />
+        <Text className="mt-3 text-gray-600">Loading customer...</Text>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-white">
-      <View className=" border-b border-gray-200">
-        <View className="text-2xl font-bold text-gray-800">
-          <Appbar.Header>
-            <Appbar.BackAction onPress={() => router.back()} />
-            <Appbar.Content title="Create Customer" />
-          </Appbar.Header>
-        </View>
-      </View>
+      {/* Header */}
+      <Appbar.Header>
+        <Appbar.BackAction onPress={() => router.back()} />
+        <Appbar.Content title="Edit Customer" />
+      </Appbar.Header>
 
+      {/* Form */}
       <ScrollView className="flex-1 bg-white">
         <View className="p-5">
+          {/* Section 1 */}
           <View className="bg-gray-50 rounded-lg p-4 mb-8 border border-gray-200">
-            {/*             <Text className="text-lg font-semibold text-gray-800 mb-8 border-b pb-2 rounded border-gray-200">
-              Customer
-            </Text>
- */}
             <FormDropdown
               control={control}
               name="series"
@@ -163,10 +247,12 @@ export default function CustomerCreate() {
             />
           </View>
 
+          {/* Address Section */}
           <View className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-            <Text className="text-lg font-semibold text-gray-800 mb-8 border-b pb-2 rounded border-gray-200">
+            <Text className="text-lg font-semibold text-gray-800 mb-8 border-b pb-2">
               Address
             </Text>
+
             <FormInput control={control} name="address" label="Address" />
 
             <FormInput control={control} name="area" label="Area" />
@@ -200,10 +286,12 @@ export default function CustomerCreate() {
             <FormInput control={control} name="gstn" label="GSTN" />
           </View>
 
+          {/* Contact Person */}
           <View className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-            <Text className="text-lg font-semibold text-gray-800 mb-8 border-b pb-2 rounded border-gray-200">
+            <Text className="text-lg font-semibold text-gray-800 mb-8 border-b pb-2">
               Contact Person
             </Text>
+
             <FormInput
               control={control}
               name="contactPersonName"
@@ -238,14 +326,12 @@ export default function CustomerCreate() {
             />
           </View>
 
-          {/* Error Message */}
           {errors.root && (
             <Text className="text-red-500 text-sm mb-4 text-center">
               {errors.root.message}
             </Text>
           )}
 
-          {/* Submit Buttons */}
           <View className="gap-3 mt-4 mb-6">
             <FormButton
               variant="primary"
@@ -253,7 +339,7 @@ export default function CustomerCreate() {
               loading={isSubmitting}
               disabled={isSubmitting}
             >
-              Create Customer
+              Update Customer
             </FormButton>
 
             <FormButton

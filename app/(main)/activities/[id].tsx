@@ -19,6 +19,11 @@ interface Activity {
   endDate: string;
   priority: string;
   activityDescription: string;
+
+  //remove this after getting api with proper fields
+  body: string;
+  postId: number;
+  likes: number;
 }
 
 export default function ActivityDetail() {
@@ -100,7 +105,7 @@ export default function ActivityDetail() {
 
           {/* Actions */}
           <View className="gap-3 mt-6">
-            <Link href={`/(main)/activities/edit/?id=${activity.id}`} asChild>
+            <Link href={`/(main)/activities/edit?id=${activity.id}`} asChild>
               <Pressable className="bg-[#7B68A6] p-4 rounded-lg">
                 <Text className="text-white text-center font-medium text-base">
                   Edit Activity

@@ -10,15 +10,18 @@ import "../global.css"; // Import your global CSS file
 
 import Toast from "@/components/Toast";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { Provider as PaperProvider } from "react-native-paper";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack></Stack>
-      <StatusBar style="auto" />
-      <Toast />
-    </ThemeProvider>
+    <PaperProvider>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <Stack></Stack>
+        <StatusBar style="auto" />
+        <Toast />
+      </ThemeProvider>
+    </PaperProvider>
   );
 }

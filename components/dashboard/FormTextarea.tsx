@@ -1,6 +1,6 @@
-import { View } from "react-native";
 import { Controller } from "react-hook-form";
-import { TextInput, Text } from "react-native-paper";
+import { View } from "react-native";
+import { HelperText, TextInput } from "react-native-paper";
 
 type Props = {
   control: any;
@@ -10,16 +10,22 @@ type Props = {
 };
 
 export default function FormTextarea({ control, name, label, rules }: Props) {
+  const isRequired = !!rules?.required;
+
   return (
     <View className="mb-4">
       <Controller
         control={control}
         name={name}
         rules={rules}
-        render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
+        render={({
+          field: { value, onChange, onBlur },
+          fieldState: { error },
+        }) => (
           <>
             <TextInput
-              label={label}
+              mode="outlined"
+              label={isRequired ? `${label} *` : label} // ⭐ label inside
               value={value}
               onBlur={onBlur}
               onChangeText={onChange}
@@ -27,7 +33,10 @@ export default function FormTextarea({ control, name, label, rules }: Props) {
               numberOfLines={5}
               error={!!error}
             />
-            {error && <Text className="text-red-500 mt-1">{error.message}</Text>}
+
+            <HelperText type="error" visible={!!error}>
+              {error?.message}
+            </HelperText>
           </>
         )}
       />

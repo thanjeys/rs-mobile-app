@@ -1,6 +1,6 @@
 import { Controller } from "react-hook-form";
 import { View } from "react-native";
-import { Text, TextInput } from "react-native-paper";
+import { HelperText, TextInput } from "react-native-paper";
 
 type Props = {
   control: any;
@@ -19,6 +19,8 @@ export default function FormInput({
   rules,
   keyboardType = "default",
 }: Props) {
+  const isRequired = !!rules?.required;
+
   return (
     <View className="mb-4">
       <Controller
@@ -28,22 +30,25 @@ export default function FormInput({
         render={({
           field: { onChange, onBlur, value },
           fieldState: { error },
-        }) => (
-          <>
-            <TextInput
-              label={label}
-              value={value}
-              onBlur={onBlur}
-              onChangeText={onChange}
-              secureTextEntry={secure}
-              keyboardType={keyboardType}
-              error={!!error}
-            />
-            {error && (
-              <Text className="text-red-500 mt-1">{error.message}</Text>
-            )}
-          </>
-        )}
+        }) => {
+          const finalLabel = isRequired ? `${label} *` : label;
+          return (
+            <>
+              <TextInput
+                label={finalLabel}
+                value={value}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                secureTextEntry={secure}
+                keyboardType={keyboardType}
+                error={!!error}
+              />
+              <HelperText type="error" visible={!!error}>
+                {error?.message}
+              </HelperText>
+            </>
+          );
+        }}
       />
     </View>
   );
