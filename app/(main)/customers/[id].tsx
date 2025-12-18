@@ -1,4 +1,5 @@
 import ContactIcons from "@/components/dashboard/ContactIcons";
+import FormProgressBar from "@/components/dashboard/FormProgressBar";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -8,20 +9,17 @@ import {
   Text,
   View,
 } from "react-native";
-import { Avatar } from "react-native-paper";
+import { Avatar, Icon } from "react-native-paper";
 import api from "../../../lib/api";
 
 interface Customer {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
+  cusID: number;
+  customerName: string;
+  customerGroup: string;
+  customerCode: string;
   phone: string;
-  address: {
-    address: string;
-    city: string;
-    state: string;
-  };
+  city: string;
+  state: string;
 }
 
 export default function CustomerDetail() {
@@ -42,8 +40,8 @@ export default function CustomerDetail() {
 
   const fetchCustomer = async () => {
     try {
-      const response = await api.get(`/users/${id}`);
-      setCustomer(response.data);
+      const response = await api.get(`/customer/${id}`);
+      setCustomer(response.data[0]);
     } catch (error) {
       console.error("Error fetching customer:", error);
     } finally {
@@ -82,15 +80,15 @@ export default function CustomerDetail() {
             <Avatar.Text
               size={60}
               className="text-lg"
-              label={getInitials(`${customer.firstName} ${customer.lastName}`)}
+              label={getInitials(`${customer.customerName}`)}
               style={{ backgroundColor: "#7B68A6" }}
             />
             <View>
               <Text className="text-2xl font-bold text-gray-800">
-                {customer.firstName} {customer.lastName}
+                {customer.customerName}
               </Text>
               <Text className="text-sm text-gray-500 mt-1">
-                Customer ID: {customer.id}
+                Customer ID: {customer.customerCode}
               </Text>
               <ContactIcons
                 email="test@example.com"
@@ -107,66 +105,67 @@ export default function CustomerDetail() {
             Address
           </Text>
 
-          <Text className="text-base text-gray-800">
-            {customer.address.address}
-          </Text>
           <Text className="text-base text-gray-800 mt-1">
-            {customer.address.city}, {customer.address.state}
+            {customer.city}, {customer.state}
           </Text>
         </View>
 
         {/* Contact Information */}
-        <View className="bg-gray-50 rounded-lg p-4 mb-4">
-          <Text className="text-lg font-semibold text-gray-800 mb-3">
-            Contact Information
-          </Text>
-
-          <View className="mb-3">
-            <Text className="text-xs text-gray-500 mb-1">Email</Text>
-            <Text className="text-base text-gray-800">{customer.email}</Text>
-          </View>
-
-          <View>
-            <Text className="text-xs text-gray-500 mb-1">Phone</Text>
-            <Text className="text-base text-gray-800">{customer.phone}</Text>
-          </View>
-        </View>
-
-        <View className="bg-gray-50 rounded-lg p-4 mb-4">
-          <Text className="text-lg font-semibold text-gray-800 mb-3">
-            Contact Information
-          </Text>
-
-          <View className="mb-3">
-            <Text className="text-xs text-gray-500 mb-1">Email</Text>
-            <Text className="text-base text-gray-800">{customer.email}</Text>
-          </View>
-
-          <View>
-            <Text className="text-xs text-gray-500 mb-1">Phone</Text>
-            <Text className="text-base text-gray-800">{customer.phone}</Text>
-          </View>
-        </View>
-
-        {/* Actions */}
-        <View className="gap-3 mt-6">
-          <Link href={`/(main)/customers/edit?id=${customer.id}`} asChild>
-            <Pressable className="bg-[#7B68A6] p-4 rounded-lg">
-              <Text className="text-white text-center font-medium text-base">
-                Edit Customer
+        <View className="flex flex-row gap-4 mb-4">
+          <View className="bg-gray-50 rounded-lg p-4 mb-4 flex-1">
+            <View className="mb-3">
+              <Text className="text-base text-[#7B68A6] mb-1">
+                5565096.000000
               </Text>
+              <Text className="text-base text-gray-800">
+                Outstanding Balance
+              </Text>
+            </View>
+          </View>
+
+          <View className="bg-gray-50 rounded-lg p-4 mb-4 flex-1">
+            <View className="mb-3">
+              <Text className="text-base text-[#7B68A6] mb-1">
+                5565096.000000 INR
+              </Text>
+              <Text className="text-base text-gray-800">Overdue Balance</Text>
+            </View>
+          </View>
+        </View>
+
+        <View className="bg-gray-50 rounded-lg p-4 mb-8 border border-gray-200">
+          <Text className="text-lg font-semibold text-gray-800 mb-8 border-b pb-2 rounded border-gray-200">
+            Available Credit Limit : INR
+          </Text>
+
+          <FormProgressBar
+            label="Target vs Achieved (Quantity)"
+            completed={35}
+            total={60}
+          />
+        </View>
+
+        <View className="mb-4 mt-4">
+          <Link href="/products" asChild>
+            <Pressable className="bg-gray-50 p-4 rounded-lg mb-3 border border-gray-200 active:bg-gray-100">
+              <View className="flex-row items-start gap-4">
+                <Icon source="package-variant" size={40} />
+                <Text>Products</Text>
+              </View>
             </Pressable>
           </Link>
 
-          <Pressable
-            className="bg-gray-200 p-4 rounded-lg"
-            onPress={() => router.back()}
-          >
-            <Text className="text-gray-700 text-center font-medium text-base">
-              Back to List
-            </Text>
-          </Pressable>
+          <Link href="/carts" asChild>
+            <Pressable className="bg-gray-50 p-4 rounded-lg mb-3 border border-gray-200 active:bg-gray-100">
+              <View className="flex-row items-start gap-4">
+                <Icon source="cart-variant" size={40} />
+                <Text style={{ marginLeft: 8, fontSize: 16 }}>Carts</Text>
+              </View>
+            </Pressable>
+          </Link>
         </View>
+
+        {/* Actions */}
       </View>
     </ScrollView>
   );

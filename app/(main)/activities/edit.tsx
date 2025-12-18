@@ -2,7 +2,6 @@ import { useToast } from "@/components/Toast";
 import FormButton from "@/components/dashboard/FormButton";
 import FormDatePicker from "@/components/dashboard/FormDatePicker";
 import FormDropdown from "@/components/dashboard/FormDropdown";
-import FormInput from "@/components/dashboard/FormInput";
 import FormTextarea from "@/components/dashboard/FormTextarea";
 import api from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,16 +15,15 @@ import { z } from "zod";
 // ---------- Validation ----------
 const ActivitySchema = z
   .object({
-    customerCode: z.string().min(1, "Customer code is required"),
+    customerName: z.string().min(1, "Customer code is required"),
 
-    activityType: z
+    activityID: z
       .array(z.string())
       .nonempty("Please select at least one activity type"),
 
-    subject: z.string().min(1, "Subject is required"),
     startDate: z.coerce.date(),
     endDate: z.coerce.date(),
-    priority: z.string().min(1, "Priority is required"),
+    status: z.string().min(1, "Priority is required"),
 
     activityDescription: z
       .string()
@@ -42,7 +40,7 @@ type ActivityFormData = z.infer<typeof ActivitySchema>;
 // ---------- Component ----------
 export default function ActivityEdit() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { activityID } = useLocalSearchParams();
   const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
@@ -56,22 +54,32 @@ export default function ActivityEdit() {
   } = useForm<any>({
     resolver: zodResolver(ActivitySchema),
     mode: "onTouched",
+    defaultValues: {
+      customerName: "",
+      activityID: [],
+      startDate: null, // <-- change from undefined to null
+      endDate: null, // <-- change from undefined to null
+      status: "",
+      activityDescription: "",
+    },
   });
 
   // ---------- Load Activity ----------
   const fetchActivity = async () => {
     try {
-      const response = await api.get(`/comments/${id}`);
-      const data = response.data;
+      const response = await api.get(`/activity/${activityID}`);
+      const data = response.data[0];
 
       reset({
-        customerCode: "",
-        activityType: [],
-        subject: `Subject of Comment #${data.id}`,
-        startDate: new Date(),
-        endDate: new Date(),
-        priority: "",
-        activityDescription: data.body,
+        customerName: data.customerName ?? "",
+        activityID: data.activityID ? [String(data.activityID)] : [], // form expects array
+
+        startDate: data.StartDate ? new Date(data.StartDate) : null, // <-- null
+        endDate: data.EndDate ? new Date(data.EndDate) : null,
+
+        status: data.status ? String(data.status) : "",
+
+        activityDescription: data.activityDescription ?? "",
       });
 
       setLoading(false);
@@ -83,23 +91,22 @@ export default function ActivityEdit() {
 
   useEffect(() => {
     fetchActivity();
-  }, [id]);
+  }, [activityID]);
 
   // ---------- Submit ----------
   const onSubmit: SubmitHandler<ActivityFormData> = async (values) => {
     try {
-      await api.put(`/comments/update/${id}`, {
-        customerCode: values.activityDescription,
-        activityType: values.activityDescription,
-        subject: values.subject,
+      await api.put(`/update-activity/${activityID}`, {
+        customerName: values.customerName,
+        activityID: values.activityID,
         startDate: values.startDate.toISOString().split("T")[0],
         endDate: values.endDate.toISOString().split("T")[0],
-        priority: values.activityDescription,
-        body: values.activityDescription,
+        status: values.status,
+        activityDescription: values.activityDescription,
       });
 
       showToast("Activity updated successfully!", "success");
-      router.back();
+      //   router.back();
     } catch (error) {
       setError("root", { message: "Failed to update activity" });
     }
@@ -125,31 +132,29 @@ export default function ActivityEdit() {
       <ScrollView className="p-5 bg-white">
         <FormDropdown
           control={control}
-          name="customerCode"
+          name="customerName"
           label="Customer Code"
           multiple={false}
           items={[
-            { label: "Hindustan Associates", value: "1" },
-            { label: "Sharath & Co", value: "2" },
-            { label: "Global Traders", value: "3" },
+            { label: "Hindustan Associates", value: "Hindustan Associates" },
+            { label: "Sharath & Co", value: "Sharath & Co" },
+            { label: "Global Traders", value: "Global Traders" },
           ]}
         />
         <FormDropdown
           control={control}
-          name="activityType"
+          name="activityID"
           label="Activity Type"
           multiple={true}
           items={[
-            { label: "Phone Call", value: "1" },
-            { label: "Meeting", value: "2" },
-            { label: "Task", value: "3" },
-            { label: "Note", value: "4" },
-            { label: "Campaign", value: "5" },
-            { label: "Other", value: "6" },
+            { label: "Phone Call", value: "32" },
+            { label: "Meeting", value: "41" },
+            { label: "Task", value: "27" },
+            { label: "Note", value: "19" },
+            { label: "Campaign", value: "58" },
+            { label: "Other", value: "74" },
           ]}
         />
-
-        <FormInput control={control} name="subject" label="Subject" />
 
         <FormDatePicker
           control={control}
@@ -167,12 +172,12 @@ export default function ActivityEdit() {
 
         <FormDropdown
           control={control}
-          name="priority"
+          name="status"
           label="Priority"
           items={[
-            { label: "Low", value: "1" },
-            { label: "Medium", value: "2" },
-            { label: "High", value: "3" },
+            { label: "Low", value: "Low" },
+            { label: "Medium", value: "Medium" },
+            { label: "High", value: "High" },
           ]}
         />
 

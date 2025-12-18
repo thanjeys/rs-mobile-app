@@ -47,7 +47,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (username, password) => {
     try {
-      const res = await api.post("auth/login", { username, password });
+      const res = await api.post("https://dummyjson.com/auth/login", { username, password });
       const token = res.data.accessToken;
 
       await storage.setItem("token", token);

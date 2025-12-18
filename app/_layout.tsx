@@ -18,7 +18,7 @@ export default function RootLayout() {
   return (
     <PaperProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack></Stack>
+        <Stack screenOptions={{ headerShown: false }} />
         <StatusBar style="auto" />
         <Toast />
       </ThemeProvider>

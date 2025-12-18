@@ -13,21 +13,14 @@ import { Appbar, Avatar, Icon } from "react-native-paper";
 
 interface Activity {
   id: number;
-  activityType: string;
-  customerCode: string;
-  subject: string;
-
-  //remove this after getting api with proper fields
-  user: {
-    fullName: string;
-  };
-  body: string;
-  postId: number;
-  likes: number;
+  activityID: number;
+  customerName: string;
+  employeeName: string;
+  employeeCode: string;
 }
 
 interface ApiResponse {
-  comments: Activity[];
+  customers: Activity[];
   total: number;
 }
 
@@ -52,9 +45,7 @@ export default function Activities() {
       setFilteredActivities(activities);
     } else {
       const filtered = activities.filter((activity) =>
-        activity.user?.fullName
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase())
+        activity.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredActivities(filtered);
     }
@@ -62,9 +53,9 @@ export default function Activities() {
 
   const fetchActivities = async () => {
     try {
-      const response = await api.get<ApiResponse>("/comments");
-      setActivities(response.data.comments);
-      setFilteredActivities(response.data.comments);
+      const response = await api.get("/activities");
+      setActivities(response.data);
+      setFilteredActivities(response.data);
     } catch (error) {
       console.error("Error fetching customers:", error);
     } finally {
@@ -112,32 +103,32 @@ export default function Activities() {
       </View>
       <FlatList
         data={filteredActivities}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.activityID.toString()}
         contentContainerStyle={{ padding: 20 }}
         renderItem={({ item }) => (
-          <Link href={`/(main)/activities/${item.id}` as any} asChild>
+          <Link href={`/(main)/activities/${item.activityID}` as any} asChild>
             <Pressable className="bg-gray-50 p-4 rounded-lg mb-3 border border-gray-200 active:bg-gray-100">
               <View className="flex-row items-start gap-4">
                 <Avatar.Text
                   size={60}
                   className="text-lg"
-                  label={getInitials(item.user.fullName)}
+                  label={getInitials(item.employeeName)}
                   style={{ backgroundColor: "#7B68A6" }}
                 />
 
                 <View className="flex-1">
                   <Text className="text-lg font-semibold text-gray-800">
-                    {item.body}
+                    {item.employeeName}
                   </Text>
                   <Text className="text-sm text-gray-600 mt-1">
-                    {item.postId}
+                    {item.employeeCode}
                   </Text>
                   <Text className="text-sm text-gray-600 mt-1">
-                    Activity ID: {item.id}
+                    Activity ID: {item.activityID}
                   </Text>
 
                   <Text className="text-sm text-gray-500 mt-0.5">
-                    Customer: {item.user.fullName}
+                    Customer: {item.customerName}
                   </Text>
                 </View>
               </View>

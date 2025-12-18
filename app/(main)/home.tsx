@@ -22,8 +22,22 @@ export default function Home() {
             </Text>
           </Pressable>
         </Link>
-      </View>
+        <Link href="/(main)/orders" asChild>
+          <Pressable className="bg-[#A5D8DD] p-5 rounded-lg">
+            <Text className="text-center text-lg font-medium text-[#7B68A6]">
+              Open Orders - 2
+            </Text>
+          </Pressable>
+        </Link>
 
+        <Link href="/(main)/invoices" asChild>
+          <Pressable className="bg-[#A5D8DD] p-5 rounded-lg">
+            <Text className="text-center text-lg font-medium text-[#7B68A6]">
+              Invoices - 2
+            </Text>
+          </Pressable>
+        </Link>
+      </View>
       <FormProgressBar
         label="Target vs Achieved (Quantity)"
         completed={35}

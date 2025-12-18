@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://dummyjson.com/",
+  baseURL: "http://127.0.0.1:8000/api/",
 });
 
 // Function to set auth token - will be called from authStore

@@ -33,7 +33,7 @@ export default function FormDropdown({
   const [search, setSearch] = useState("");
   const [focused, setFocused] = useState(false);
 
-  const isRequired = !!rules?.required; // <-- check if required
+  const isRequired = !!rules?.required;
 
   return (
     <View style={{ marginBottom: 16, zIndex: 1000 }}>
@@ -42,6 +42,7 @@ export default function FormDropdown({
         name={name}
         rules={rules}
         render={({ field: { value, onChange }, fieldState: { error } }) => {
+          // ---------- Toggle (multi-select) ----------
           const toggleValue = (val: string) => {
             const arr = Array.isArray(value) ? value : [];
             if (arr.includes(val)) {
@@ -51,26 +52,29 @@ export default function FormDropdown({
             }
           };
 
+          // ---------- Select ----------
           const handleSelect = (val: string) => {
             if (multiple) {
               toggleValue(val);
             } else {
               onChange(val);
               const selectedItem = items.find((i) => i.value === val);
-              setSearch(selectedItem ? selectedItem.label : "");
+              setSearch(selectedItem?.label ?? "");
               setVisible(false);
               setFocused(false);
             }
           };
 
-          const selectedItems = multiple
+          // ---------- SAFE selected items (NO undefined ever) ----------
+          const selectedItems: Item[] = multiple
             ? items.filter(
                 (i) => Array.isArray(value) && value.includes(i.value)
               )
             : value
-              ? [items.find((i) => i.value === value)!]
+              ? items.filter((i) => i.value === value)
               : [];
 
+          // ---------- Search ----------
           const filteredItems = items.filter((i) =>
             i.label.toLowerCase().includes(search.toLowerCase())
           );
@@ -85,7 +89,9 @@ export default function FormDropdown({
                 onPress={() => {
                   setFocused(true);
                   setVisible(true);
-                  if (!multiple && selectedItems.length > 0) setSearch("");
+                  if (!multiple && selectedItems.length > 0) {
+                    setSearch("");
+                  }
                 }}
               >
                 <View
@@ -94,7 +100,7 @@ export default function FormDropdown({
                     { borderColor: error ? "red" : "#999" },
                   ]}
                 >
-                  {/* Multi-select chips inside input */}
+                  {/* MULTI-SELECT CHIPS */}
                   {multiple && selectedItems.length > 0 && (
                     <ScrollView
                       horizontal
@@ -114,12 +120,12 @@ export default function FormDropdown({
                     </ScrollView>
                   )}
 
-                  {/* Multi-select editable search only when no chips */}
+                  {/* MULTI SEARCH INPUT (only when empty) */}
                   {multiEditable && (
                     <TextInput
                       value={search}
                       onChangeText={setSearch}
-                      placeholder={isRequired ? `${label} *` : label} // <-- add * if required
+                      placeholder={isRequired ? `${label} *` : label}
                       style={styles.searchInput}
                       underlineColor="transparent"
                       activeUnderlineColor="transparent"
@@ -130,15 +136,17 @@ export default function FormDropdown({
                     />
                   )}
 
-                  {/* Single-select as is */}
+                  {/* SINGLE SELECT DISPLAY */}
                   {!multiple &&
                     selectedItems.length > 0 &&
                     !focused &&
                     !search && (
                       <RNText style={{ fontSize: 16 }}>
-                        {selectedItems[0].label}
+                        {selectedItems[0]?.label}
                       </RNText>
                     )}
+
+                  {/* SINGLE SELECT SEARCH */}
                   {!multiple && (
                     <TextInput
                       value={search}
@@ -156,7 +164,7 @@ export default function FormDropdown({
                       onFocus={() => {
                         setFocused(true);
                         setVisible(true);
-                        setSearch(""); // clear previous value
+                        setSearch("");
                       }}
                     />
                   )}
@@ -175,7 +183,7 @@ export default function FormDropdown({
                 </View>
               </TouchableOpacity>
 
-              {/* DROPDOWN PANEL */}
+              {/* DROPDOWN LIST */}
               {visible && (
                 <View style={styles.dropdownPanel}>
                   <ScrollView style={{ maxHeight: 260 }}>
@@ -187,7 +195,6 @@ export default function FormDropdown({
 
                       return (
                         <View key={item.value} style={styles.optionRow}>
-                          {/* Checkbox for multi-select */}
                           {multiple && (
                             <TouchableOpacity
                               onPress={() => toggleValue(item.value)}
@@ -204,7 +211,6 @@ export default function FormDropdown({
                             </TouchableOpacity>
                           )}
 
-                          {/* Text – selects option */}
                           <TouchableOpacity
                             onPress={() => handleSelect(item.value)}
                             style={{ flex: 1, paddingVertical: 10 }}
@@ -220,7 +226,7 @@ export default function FormDropdown({
                 </View>
               )}
 
-              {/* ERROR MESSAGE */}
+              {/* ERROR */}
               {error && (
                 <Text style={{ color: "red", marginTop: 4 }}>
                   {error.message}
@@ -237,7 +243,6 @@ export default function FormDropdown({
 const styles = StyleSheet.create({
   inputBox: {
     flexDirection: "row",
-    flexWrap: "nowrap",
     alignItems: "center",
     minHeight: 55,
     borderWidth: 1,

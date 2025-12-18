@@ -11,35 +11,28 @@ import {
 import { Appbar } from "react-native-paper";
 
 interface Activity {
-  id: number;
-  customerCode: string;
-  activityType: string;
-  subject: string;
-  startDate: string;
-  endDate: string;
-  priority: string;
-  activityDescription: string;
-
-  //remove this after getting api with proper fields
-  body: string;
-  postId: number;
-  likes: number;
+  activityID: number;
+  customerName: string;
+  StartDate: string;
+  EndDate: string;
+  status: string;
 }
 
 export default function ActivityDetail() {
-  const { id } = useLocalSearchParams();
+  const { activityID } = useLocalSearchParams();
   const router = useRouter();
   const [activity, setActivity] = useState<Activity | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchActivity();
-  }, [id]);
+  }, [activityID]);
 
   const fetchActivity = async () => {
     try {
-      const response = await api.get(`/comments/${id}`);
-      setActivity(response.data);
+      const response = await api.get(`/activity/${activityID}`);
+      setActivity(response.data[0]);
+      console.log("API RESPONSE:", response.data);
     } catch (error) {
       console.error("Error fetching Activity:", error);
     } finally {
@@ -84,28 +77,31 @@ export default function ActivityDetail() {
         <View className="p-5">
           <View className="bg-gray-50 rounded-lg p-4 mb-4">
             <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Activity: {activity.id}
+              Activity: {activity.activityID}
+            </Text>
+            <Text className="text-base text-gray-500 mb-1">
+              Customer Name: {activity.customerName}
             </Text>
 
             <View className="mb-3">
-              <Text className="text-base text-gray-500 mb-1">
-                Customer Name: {activity.body}
-              </Text>
               <Text className="text-base text-gray-500">
-                Start Date: {activity.postId}
+                Start Date: {activity.StartDate}
               </Text>
               <Text className="text-base text-gray-500 mb-1">
-                End Date: {activity.postId}
+                End Date: {activity.EndDate}
               </Text>
               <Text className="text-base text-gray-500">
-                Status: {activity.likes}
+                Status: {activity.status}
               </Text>
             </View>
           </View>
 
           {/* Actions */}
           <View className="gap-3 mt-6">
-            <Link href={`/(main)/activities/edit?id=${activity.id}`} asChild>
+            <Link
+              href={`/(main)/activities/edit?id=${activity.activityID}`}
+              asChild
+            >
               <Pressable className="bg-[#7B68A6] p-4 rounded-lg">
                 <Text className="text-white text-center font-medium text-base">
                   Edit Activity

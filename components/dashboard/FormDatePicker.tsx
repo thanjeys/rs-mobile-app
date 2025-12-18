@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
 import { Text, View } from "react-native";
 import { TextInput } from "react-native-paper";
@@ -38,10 +38,8 @@ const validateDateParts = (str: string) => {
 
 export default function FormDatePicker({ control, name, label, rules }: Props) {
   const [open, setOpen] = useState(false);
-  const [inputValue, setInputValue] = useState("");
   const [customError, setCustomError] = useState("");
 
-  // Check if required
   const isRequired = !!rules?.required;
 
   return (
@@ -50,70 +48,85 @@ export default function FormDatePicker({ control, name, label, rules }: Props) {
         control={control}
         name={name}
         rules={rules}
-        render={({ field: { value, onChange }, fieldState: { error } }) => (
-          <>
-            <TextInput
-              mode="outlined"
-              // Add * only if required
-              label={isRequired ? `${label} *` : label}
-              value={inputValue}
-              placeholder=""
-              error={!!error || !!customError}
-              showSoftInputOnFocus={true}
-              onChangeText={(text) => {
-                setInputValue(text);
+        render={({ field: { value, onChange }, fieldState: { error } }) => {
+          const [inputValue, setInputValue] = useState("");
 
-                if (!text) {
-                  setCustomError("");
-                  onChange(null);
-                  return;
+          // Sync inputValue whenever value changes from API or form reset
+          useEffect(() => {
+            if (value instanceof Date) {
+              setInputValue(formatDate(value));
+            } else {
+              setInputValue(""); // <-- keep empty if no value
+            }
+          }, [value]);
+
+          return (
+            <>
+              <TextInput
+                mode="outlined"
+                label={isRequired ? `${label} *` : label}
+                value={inputValue}
+                placeholder="" // input stays empty if no value
+                error={!!error || !!customError}
+                showSoftInputOnFocus={true}
+                onChangeText={(text) => {
+                  setInputValue(text);
+
+                  if (!text) {
+                    setCustomError("");
+                    onChange(null);
+                    return;
+                  }
+
+                  const partError = validateDateParts(text);
+                  if (partError) {
+                    setCustomError(partError);
+                    onChange(null);
+                  } else {
+                    setCustomError("");
+                    const parsed = parseDate(text);
+                    if (parsed) onChange(parsed);
+                  }
+                }}
+                right={
+                  <TextInput.Icon
+                    icon="calendar"
+                    onPress={() => setOpen(true)}
+                  />
                 }
+              />
 
-                const partError = validateDateParts(text);
-                if (partError) {
-                  setCustomError(partError);
-                  onChange(null);
-                } else {
-                  setCustomError("");
-                  const parsed = parseDate(text);
-                  if (parsed) onChange(parsed);
-                }
-              }}
-              right={
-                <TextInput.Icon icon="calendar" onPress={() => setOpen(true)} />
-              }
-            />
-
-            <Text style={{ color: "#666", fontSize: 12, marginTop: 2 }}>
-              DD-MM-YYYY
-            </Text>
-
-            <DatePickerModal
-              locale="en"
-              mode="single"
-              visible={open}
-              date={value || undefined}
-              onDismiss={() => setOpen(false)}
-              onConfirm={({ date }) => {
-                if (date) {
-                  setInputValue(formatDate(date));
-                  onChange(date);
-                  setCustomError("");
-                  setOpen(false);
-                }
-              }}
-              startYear={1900}
-              endYear={2100}
-              label={label}
-            />
-
-            {(error || customError) && (
-              <Text style={{ color: "red", marginTop: 4 }}>
-                {error?.message || customError}
+              <Text style={{ color: "#666", fontSize: 12, marginTop: 2 }}>
+                DD-MM-YYYY
               </Text>
-            )}
-          </>
-        )}
+
+              <DatePickerModal
+                locale="en"
+                mode="single"
+                visible={open}
+                date={value || undefined} // calendar opens at value or empty
+                onDismiss={() => setOpen(false)}
+                onConfirm={({ date }) => {
+                  if (date) {
+                    setInputValue(formatDate(date));
+                    onChange(date);
+                    setCustomError("");
+                    setOpen(false);
+                  }
+                }}
+                startYear={1900}
+                endYear={2100}
+                label={label}
+              />
+
+              {(error || customError) && (
+                <Text style={{ color: "red", marginTop: 4 }}>
+                  {error?.message || customError}
+                </Text>
+              )}
+            </>
+          );
+        }}
       />
     </View>
   );

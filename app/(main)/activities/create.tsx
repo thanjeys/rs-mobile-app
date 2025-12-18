@@ -15,15 +15,15 @@ import { z } from "zod";
 // Zod Schema
 const ActivitySchema = z
   .object({
-    customerCode: z.string().min(1, "Customer code is required"),
+    customerName: z.string().min(1, "Customer code is required"),
 
-    activityType: z
+    activityID: z
       .array(z.string())
       .nonempty("Please select at least one activity type"),
 
-    subject: z.string().min(1, "Subject is required"),
     startDate: z
       .date()
+
       .refine((val) => val instanceof Date && !isNaN(val.getTime()), {
         message: "Start date is required",
       }),
@@ -32,7 +32,7 @@ const ActivitySchema = z
       .refine((val) => val instanceof Date && !isNaN(val.getTime()), {
         message: "End date is required",
       }),
-    priority: z.string().min(1, "Priority is required"),
+    status: z.string().min(1, "Priority is required"),
     activityDescription: z
       .string()
       .min(1, "Activity description is required")
@@ -60,12 +60,11 @@ export default function ActivityCreate() {
     resolver: zodResolver(ActivitySchema),
     mode: "onTouched",
     defaultValues: {
-      customerCode: "",
-      activityType: [],
-      subject: "",
-      startDate: new Date(),
-      endDate: new Date(),
-      priority: "",
+      customerName: "",
+      activityID: [],
+      startDate: null,
+      endDate: null,
+      status: "",
       activityDescription: "",
     },
   });
@@ -73,15 +72,17 @@ export default function ActivityCreate() {
   const onSubmit = async (values: ActivityFormData) => {
     try {
       console.log("Submitting values:", values);
-      const response = await api.post("/users/add", {
-        customerCode: values.customerCode,
-        activityType: values.activityType,
-        subject: values.subject,
-        startDate: values.startDate,
-        endDate: values.endDate,
-        priority: values.priority,
-        activityDescription: values.activityDescription,
-      });
+      const response = await api.post(
+        "/create-activity",
+        {
+          customerName: values.customerName,
+          activityID: values.activityID,
+          startDate: values.startDate,
+          endDate: values.endDate,
+          status: values.status,
+          activityDescription: values.activityDescription,
+        }
+      );
 
       showToast("Activity created successfully!", "success");
       router.back();
@@ -114,35 +115,31 @@ export default function ActivityCreate() {
           <View className="p-5">
             <FormDropdown
               control={control}
-              name="customerCode"
+              name="customerName"
               label="Customer Code"
               multiple={false}
               items={[
-                { label: "Hindustan Associates", value: "1" },
-                { label: "Sharath & Co", value: "2" },
-                { label: "Global Traders", value: "3" },
+                {
+                  label: "Hindustan Associates",
+                  value: "Hindustan Associates",
+                },
+                { label: "Sharath & Co", value: "Sharath & Co" },
+                { label: "Global Traders", value: "Global Traders" },
               ]}
             />
             <FormDropdown
               control={control}
-              name="activityType"
+              name="activityID"
               label="Activity Type"
               multiple={true}
               items={[
-                { label: "Phone Call", value: "1" },
-                { label: "Meeting", value: "2" },
-                { label: "Task", value: "3" },
-                { label: "Note", value: "4" },
-                { label: "Campaign", value: "5" },
-                { label: "Other", value: "6" },
+                { label: "Phone Call", value: "32" },
+                { label: "Meeting", value: "41" },
+                { label: "Task", value: "27" },
+                { label: "Note", value: "19" },
+                { label: "Campaign", value: "58" },
+                { label: "Other", value: "74" },
               ]}
-            />
-
-            <FormInput
-              control={control}
-              name="subject"
-              label="Subject"
-              rules={{ required: "Subject is required" }}
             />
 
             <FormDatePicker
@@ -160,12 +157,12 @@ export default function ActivityCreate() {
 
             <FormDropdown
               control={control}
-              name="priority"
+              name="status"
               label="Priority"
               items={[
-                { label: "Low", value: "1" },
-                { label: "Medium", value: "2" },
-                { label: "High", value: "3" },
+                { label: "Low", value: "Low" },
+                { label: "Medium", value: "Medium" },
+                { label: "High", value: "High" },
               ]}
               rules={{ required: "Priority is required" }}
             />

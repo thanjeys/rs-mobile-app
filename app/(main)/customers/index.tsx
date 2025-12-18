@@ -13,12 +13,9 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import api from "../../../lib/api";
 
 interface Customer {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  age: number;
+  cusID: number;
+  customerCode: string;
+  customerName: string;
 }
 
 interface ApiResponse {
@@ -41,7 +38,7 @@ export default function Customers() {
       setFilteredCustomers(customers);
     } else {
       const filtered = customers.filter((customer) =>
-        customer.firstName?.toLowerCase().includes(searchQuery.toLowerCase())
+        customer.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredCustomers(filtered);
     }
@@ -49,9 +46,9 @@ export default function Customers() {
 
   const fetchCustomers = async () => {
     try {
-      const response = await api.get<ApiResponse>("/users");
-      setCustomers(response.data.users);
-      setFilteredCustomers(response.data.users);
+      const response = await api.get("/customers");
+      setCustomers(response.data);
+      setFilteredCustomers(response.data);
     } catch (error) {
       console.error("Error fetching customers:", error);
     } finally {
@@ -106,24 +103,24 @@ export default function Customers() {
 
       <FlatList
         data={filteredCustomers}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.cusID.toString()}
         contentContainerStyle={{ padding: 20 }}
         renderItem={({ item }) => (
-          <Link href={`/(main)/customers/${item.id}` as any} asChild>
+          <Link href={`/(main)/customers/${item.cusID}` as any} asChild>
             <Pressable className="bg-gray-50 p-4 rounded-lg mb-3 border border-gray-200 active:bg-gray-100">
               <View className="flex-row items-start gap-4">
                 <Avatar.Text
                   size={60}
                   className="text-lg"
-                  label={getInitials(item.firstName + " " + item.lastName)}
+                  label={getInitials(item.customerName)}
                   style={{ backgroundColor: "#7B68A6" }}
                 />
                 <View className="flex-1">
                   <Text className="text-lg font-semibold text-gray-800">
-                    {item.firstName} {item.lastName}
+                    {item.customerName}
                   </Text>
                   <Text className="text-sm text-gray-600 mt-1">
-                    {item.email}
+                    {item.customerCode}
                   </Text>
                 </View>
                 <View className=" px-3 mt-4 py-1 rounded-full">
